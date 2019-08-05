@@ -2,7 +2,10 @@
   "name": "node-font-scraper",
   "version": "0.0.1",
   "description": "Scrape fonts from a given URL using the power of Node.js",
-  "main": "index.js",
+  "main": "src/index.js",
+  "scripts": {
+    "scrape": "node src/index.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/harmendv/node-font-scraper.git"
@@ -12,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/harmendv/node-font-scraper/issues"
   },
-  "homepage": "https://github.com/harmendv/node-font-scraper#readme"
+  "homepage": "https://github.com/harmendv/node-font-scraper#readme",
+  "dependencies": {
+    "pretty-error": "^2.1.1"
+  }
 }
