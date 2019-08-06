@@ -1,8 +1,9 @@
 const isUrl = require('./utils/isUrl.js');
-const ErrorHandler = require('./utils/ErrorHandler.js');
 const request = require('request');
 const path = require('path');
-const url = require('url');
+const fs = require('fs');
+const http = require('http');
+const https = require('https');
 
 const HTML_LINK_ATTRIBUTES = [
   'src',
@@ -28,10 +29,12 @@ class FontScraper {
     this.html;
     this.links;
     this.fonts;
+    this.output;
 
+    // Check if an URL is given in the second argument
     if (this.arguments[2]) {
       if (!isUrl(this.arguments[2])) {
-        ErrorHandler.throw(new Error('Given argument is not of type URL.'));
+        throw new Error('Given argument is not of type URL.');
       } else {
         this.url = new URL(this.arguments[2]);
         // Set the base URL
@@ -40,11 +43,23 @@ class FontScraper {
         } else {
           this.base_url = '//' + this.url.hostname;
         }
-        this.getFonts()
+        console.clear();
+        console.log('Source: ' + this.url);
+        this.getFonts();
       }
     } else {
-      ErrorHandler.throw(new Error('No URL given.'));
+      new Error('No URL given in first argument');
     }
+
+    // Check if an output path is given
+    if(this.arguments[3]) {
+      if (!fs.existsSync(path.resolve(this.arguments[3]))) {
+        throw new Error('Given output path doesnt exist.');
+      }
+      this.output = path.resolve(this.arguments[3]);
+      console.log('Output: ' + this.arguments[3])
+    }
+
   }
 
   getContents(path) {
@@ -61,7 +76,7 @@ class FontScraper {
   }
 
   getLinksFromHTML(html) {
-    var links = html.match(/((?<=href=")|(?<=src=")|(?<=data-src="))(\S+)(?=")/gim);
+    var links = html.match(/(((?<=href=["']))|(?<=src=["'])|(?<=data-src="))(\S+)(?=["'])/gim);
     var modifiedLinks = [];
     if (!links) {
       return [];
@@ -69,12 +84,17 @@ class FontScraper {
       links.forEach(link => {
         if (link.startsWith('/') && !link.startsWith('//')) {
           modifiedLinks.push(this.base_url + link);
+        } else if (!link.startsWith('/') && !link.startsWith('http') && !link.startsWith('https')) {
+          modifiedLinks.push(this.base_url + '/' + link)
         } else {
           modifiedLinks.push(link);
         }
       });
     }
-    console.log('Found ' + modifiedLinks.length + ' links.')
+    console.log('Found ' + modifiedLinks.length + ' links.');
+    // if(modifiedLinks.length > 0) {
+    //   console.log(modifiedLinks);
+    // }
     return modifiedLinks;
   }
 
@@ -110,11 +130,14 @@ class FontScraper {
   findCSSinHTML(links) {
     let css = [];
     links.forEach((link) => {
-      const extension = path.extname(link);
-      if (['.css'].includes(extension)) {
+      if (link.includes('css')) {
         css.push(link);
       }
     })
+    console.log('Found ' + css.length + ' CSS file(s)');
+    // if(css.length > 0) {
+    //   console.log(css);
+    // }
     return css;
   }
 
@@ -139,10 +162,7 @@ class FontScraper {
       const getContentPromises = [];
 
       filePaths.forEach((file) => {
-        // Only check the CSS files
-        if (['.css'].includes(path.extname(file))) {
-          getContentPromises.push(this.getContents(file))
-        }
+        getContentPromises.push(this.getContents(file))
       })
       Promise.all(getContentPromises).then(values => {
         values.forEach(value => {
@@ -179,9 +199,46 @@ class FontScraper {
         if(results[1].length > 0) {
           console.log(results[1])
         }
+        // Check if output is given, then download to the output!
+        if(this.output) {
+          results.forEach(resultArray => {
+            resultArray.forEach((result) => {
+              this.downloadFont(result, path.resolve(this.output, path.basename(result)), (error) => {
+                console.log('succesfully download file')
+              })
+            });
+          })
+        }
       })
     }).catch(() => {
+      throw new Error('Something went wrong getting retrieving the URL');
     })
+  }
+
+  downloadFont(url, destination, callback) {
+      var file = fs.createWriteStream(destination);
+      if(new URL(url).protocol === 'https:') {
+        var request = https.get(url, function(response) {
+          response.pipe(file);
+          file.on('finish', function() {
+            file.close(callback);  // close() is async, call cb after close completes.
+          });
+        }).on('error', function(err) { // Handle errors
+          fs.unlink(destination); // Delete the file async. (But we don't check the result)
+          if (callback) callback(err.message);
+        });
+      } else {
+        var request = http.get(url, function(response) {
+          response.pipe(file);
+          file.on('finish', function() {
+            file.close(callback);  // close() is async, call cb after close completes.
+          });
+        }).on('error', function(err) { // Handle errors
+          fs.unlink(destination); // Delete the file async. (But we don't check the result)
+          if (callback) callback(err.message);
+        });
+      }
+
   }
 }
 
