@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/harmendv/node-font-scraper#readme",
   "dependencies": {
-    "pretty-error": "^2.1.1"
+    "pretty-error": "^2.1.1",
+    "request": "^2.88.0"
   }
 }
