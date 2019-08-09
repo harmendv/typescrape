@@ -4,13 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const http = require('http');
 const https = require('https');
-
-const HTML_LINK_ATTRIBUTES = [
-  'src',
-  'href',
-  'data-src',
-  'data-href',
-];
+const colors = require('colors');
 
 const FONT_FILE_EXTENSIONS = [
   '.ttf',
@@ -44,7 +38,7 @@ class FontScraper {
           this.base_url = '//' + this.url.hostname;
         }
         console.clear();
-        console.log('Source: ' + this.url);
+        console.log('Source: '.green + this.url);
         this.getFonts();
       }
     } else {
@@ -57,7 +51,7 @@ class FontScraper {
         throw new Error('Given output path doesnt exist.');
       }
       this.output = path.resolve(this.arguments[3]);
-      console.log('Output: ' + this.arguments[3])
+      console.log('Output: '.green + this.arguments[3])
     }
 
   }
@@ -76,7 +70,7 @@ class FontScraper {
   }
 
   getLinksFromHTML(html) {
-    var links = html.match(/(((?<=href=["']))|(?<=src=["'])|(?<=data-src="))(\S+)(?=["'])/gim);
+    var links = html.match(/(((?<=href=["']))|(?<=src=["'])|(?<=data-src=["']))(\S+)(?=["'])/gim);
     var modifiedLinks = [];
     if (!links) {
       return [];
@@ -91,7 +85,7 @@ class FontScraper {
         }
       });
     }
-    console.log('Found ' + modifiedLinks.length + ' links.');
+    console.log('Found ' + String(modifiedLinks.length).green + ' links.');
     // if(modifiedLinks.length > 0) {
     //   console.log(modifiedLinks);
     // }
@@ -99,28 +93,18 @@ class FontScraper {
   }
 
   getLinksFromCSS(css) {
-    var links = css.match(/((?<=url\()(?!')|(?<=url\('))(\S+)(?=\))/gim);
+    var links = css.match(/(?<=url\(['"])(\S+)(?=['"])|((?<=url\()[^"|^'])(\S+)(?=\))/gim);
     var modifiedLinks = [];
     if (!links) {
       return [];
     } else {
       links.forEach(link => {
-        if (link.endsWith("'")) {
-          if (link.startsWith('/') && !link.startsWith('//')) {
-            modifiedLinks.push(this.base_url + link.slice(0, -1))
-          } else if (!link.startsWith('/') && !link.startsWith('http') && !link.startsWith('https')) {
-            modifiedLinks.push(this.base_url + '/' + link.slice(0, -1))
-          } else {
-            modifiedLinks.push(link.slice(0, -1))
-          }
+        if (link.startsWith('/') && !link.startsWith('//')) {
+          modifiedLinks.push(this.base_url + link)
+        } else if (!link.startsWith('/') && !link.startsWith('http') && !link.startsWith('https')) {
+          modifiedLinks.push(this.base_url + '/' + link)
         } else {
-          if (link.startsWith('/') && !link.startsWith('//')) {
-            modifiedLinks.push(this.base_url + link)
-          } else if (!link.startsWith('/') && !link.startsWith('http') && !link.startsWith('https')) {
-            modifiedLinks.push(this.base_url + '/' + link)
-          } else {
-            modifiedLinks.push(link)
-          }
+          modifiedLinks.push(link)
         }
       })
     }
@@ -134,7 +118,7 @@ class FontScraper {
         css.push(link);
       }
     })
-    console.log('Found ' + css.length + ' CSS file(s)');
+    console.log('Found ' + String(css.length).green + ' CSS file(s)');
     // if(css.length > 0) {
     //   console.log(css);
     // }
@@ -190,21 +174,28 @@ class FontScraper {
       const links = this.getLinksFromHTML(body);
       Promise.all([this.findFontsInHTML(links), this.findFontsInCSS(links)]).then(results => {
         // results[0] is HTML
-        console.log('Found ' + results[0].length + ' fonts in directly the HTML.')
+        console.log('Found ' + String(results[0].length).green + ' fonts in directly the HTML.')
         if(results[0].length > 0) {
           console.log(results[0])
         }
         // results[1] is CSS
-        console.log('Found ' + results[1].length + ' fonts in CSS files.')
+        console.log('Found ' + String(results[1].length).green + ' fonts in CSS files.')
         if(results[1].length > 0) {
           console.log(results[1])
         }
         // Check if output is given, then download to the output!
         if(this.output) {
+          console.log('Downloading all fonts.');
           results.forEach(resultArray => {
             resultArray.forEach((result) => {
-              this.downloadFont(result, path.resolve(this.output, path.basename(result)), (error) => {
-                console.log('succesfully download file')
+              const filename = path.basename(result);
+              const destination = path.resolve(this.output, filename);
+              this.downloadFont(result, destination, (error) => {
+                if(error) {
+                  console.log('Error downloading ' + filename);
+                } else {
+                  console.log('Downloaded to ' + destination);
+                }
               })
             });
           })
