@@ -1,8 +1,18 @@
 # node-font-scraper
-Scrape fonts from a given URL using the power of Node.js
+Scrape fonts from a given URL
+
+### Install globally
+```bash
+npm install -g git+https://git@github.com/harmendv/node-font-scraper.git
+```
 
 ### Usage
-##### Locally
+#### Output results only
 ```
-npm run scrape <url> <output-path>
+scrape <url>
+```
+
+#### Output results and download to path
+```
+scrape <url> <destination>
 ```

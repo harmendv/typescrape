@@ -1,1 +1,0 @@
-const FontScraper = new (require('./FontScraper.js'))(process.argv);
