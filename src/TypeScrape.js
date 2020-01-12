@@ -185,14 +185,14 @@ class TypeScrape {
       }
       Promise.all([this.areUrlsFonts(urls), this.findFontsInCssUrls(urls), this.findGoogleFontUrls(urls)]).then(results => {
         // results[0] is HTML
-        console.log('Found ' + String(results[0].length).green + ' fonts in directly the HTML.')
+        console.log('Found ' + String(results[0].length).green + ' fonts directly in the HTML.')
         if(results[0].length > 0) {
           results[0].forEach((url) => {
             console.log(`- ${url}`)
           })
         }
         // results[1] is CSS
-        console.log('Found ' + String(results[1].length).green + ' fonts in CSS files.')
+        console.log('Found ' + String(results[1].length).green + ' fonts in the CSS files.')
         if(results[1].length > 0) {
           results[1].forEach((url) => {
             console.log(`- ${url}`)
