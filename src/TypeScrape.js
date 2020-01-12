@@ -6,8 +6,8 @@ const http = require('http');
 const https = require('https');
 const colors = require('colors'); // exposes String().color
 
-// Detect any links inside href, src, data-src, url()
-const REGEX_FONTS = new RegExp(/(((?<=href=["']))|(?<=src=["'])|(?<=data-src=["']))(\S+)(?=["'])|(?<=url\(['"])(\S+)(?=['"])|((?<=url\()[a-zA-Z0-9:/_.-]+)(?=\))/gim);
+// Detect any urls inside href, src, data-src, url()
+const REGEX_URLS = new RegExp(/(((?<=href=["']))|(?<=src=["'])|(?<=data-src=["']))(\S+)(?=["'])|(?<=url\(['"])(\S+)(?=['"])|((?<=url\()[a-zA-Z0-9:/_.-]+)(?=\))/gim);
 
 // Allowed font file extensions
 const FONT_FILE_EXTENSIONS = [
@@ -24,9 +24,6 @@ class TypeScrape {
     this.arguments = args;
     this.url = null;
     this.base_url = null;
-    this.html = null;
-    this.links = [];
-    this.fonts = [];
     this.output = null;
 
     // Check if an URL is given in the second argument
@@ -72,44 +69,44 @@ class TypeScrape {
     })
   }
 
-  getLinksFromString(html) {
-    var links = html.match(REGEX_FONTS);
-    var modifiedLinks = [];
-    if (!links) {
-      console.log('No links found in the HTML to analyze.');
+  getUrlsFromString(html) {
+    var urls = html.match(REGEX_URLS);
+    var filteredUrls = [];
+    if (!urls) {
+      console.log('No urls found in the HTML to analyze.');
       return [];
     } else {
-      links.forEach(link => {
-        if (link.startsWith('/') && !link.startsWith('//')) {
-          modifiedLinks.push(this.base_url + link);
-        } else if (!link.startsWith('/') && !link.startsWith('http') && !link.startsWith('https')) {
-          modifiedLinks.push(this.base_url + '/' + link)
+      urls.forEach(url => {
+        if (url.startsWith('/') && !url.startsWith('//')) {
+          filteredUrls.push(this.base_url + url);
+        } else if (!url.startsWith('/') && !url.startsWith('http') && !url.startsWith('https')) {
+          filteredUrls.push(this.base_url + '/' + url)
         } else {
-          modifiedLinks.push(link);
+          filteredUrls.push(url);
         }
       });
     }
-    console.log('Analyzed ' + String(modifiedLinks.length).green + ' links.');
-    return modifiedLinks;
+    console.log('Analyzed ' + String(filteredUrls.length).green + ' URLs.');
+    return filteredUrls;
   }
 
-  getLinksFromCSS(css) {
-    var links = css.match(REGEX_FONTS);
-    var modifiedLinks = [];
-    if (!links) {
+  getUrlsFromCss(css) {
+    var urls = css.match(REGEX_URLS);
+    var filteredUrls = [];
+    if (!urls) {
       return [];
     } else {
-      links.forEach(link => {
-        if (link.startsWith('/') && !link.startsWith('//')) {
-          modifiedLinks.push(this.base_url + link)
-        } else if (!link.startsWith('/') && !link.startsWith('http') && !link.startsWith('https')) {
-          modifiedLinks.push(this.base_url + '/' + link)
+      urls.forEach(url => {
+        if (url.startsWith('/') && !url.startsWith('//')) {
+          filteredUrls.push(this.base_url + url)
+        } else if (!url.startsWith('/') && !url.startsWith('http') && !url.startsWith('https')) {
+          filteredUrls.push(this.base_url + '/' + url)
         } else {
-          modifiedLinks.push(link)
+          filteredUrls.push(url)
         }
       })
     }
-    return modifiedLinks;
+    return filteredUrls;
   }
 
   filterCssUrls(urls) {
@@ -153,7 +150,7 @@ class TypeScrape {
     return new Promise((resolve, reject) => {
       const filePaths = this.filterCssUrls(urls);
       const fonts = [];
-      const getLinksPromises = [];
+      const getUrlPromises = [];
       const getContentPromises = [];
 
       filePaths.forEach((file) => {
@@ -161,10 +158,10 @@ class TypeScrape {
       })
       Promise.all(getContentPromises).then(values => {
         values.forEach(value => {
-          getLinksPromises.push(this.getLinksFromCSS(value));
+          getUrlPromises.push(this.getUrlsFromCss(value));
         })
       }).then(() => {
-        Promise.all(getLinksPromises).then(values => {
+        Promise.all(getUrlPromises).then(values => {
           values.forEach((value) => {
             value.forEach((cssLink) => {
               const extension = path.extname(cssLink);
@@ -182,7 +179,7 @@ class TypeScrape {
 
   getFonts() {
     this.getContents(this.url).then((body) => {
-      const urls = this.getLinksFromString(body);
+      const urls = this.getUrlsFromString(body);
       if(urls.length === 0) {
         return false;
       }
