@@ -1,7 +1,7 @@
 {
-  "name": "node-font-scraper",
+  "name": "typescrape",
   "version": "0.0.1",
-  "description": "Scrape fonts from a given URL using the power of Node.js",
+  "description": "Global NPM package that scrapes typefaces from a given URL.",
   "main": "lib/index.js",
   "scripts": {
     "scrape": "node lib/index.js"
@@ -16,7 +16,7 @@
     "url": "https://github.com/harmendv/node-font-scraper/issues"
   },
   "bin": {
-    "scrape": "./bin/index.js"
+    "typescrape": "./bin/index.js"
   },
   "preferGlobal": true,
   "homepage": "https://github.com/harmendv/node-font-scraper#readme",

@@ -19,7 +19,7 @@ const FONT_FILE_EXTENSIONS = [
   '.eot?#iefix',
 ];
 
-class FontScraper {
+class TypeScrape {
   constructor(args) {
     this.arguments = args;
     this.url = null;
@@ -90,9 +90,6 @@ class FontScraper {
       });
     }
     console.log('Analyzed ' + String(modifiedLinks.length).green + ' links.');
-    // if(modifiedLinks.length > 0) {
-    //   console.log(modifiedLinks);
-    // }
     return modifiedLinks;
   }
 
@@ -121,7 +118,7 @@ class FontScraper {
       if (url.includes('css')) {
         css.push(url);
       }
-    })
+    });
     console.log('Found ' + String(css.length).green + ' CSS files');
     return css;
   }
@@ -134,7 +131,7 @@ class FontScraper {
         if (FONT_FILE_EXTENSIONS.includes(extension)) {
           fonts.push(url);
         }
-      })
+      });
       resolve(fonts);
     })
   }
@@ -265,4 +262,4 @@ class FontScraper {
   }
 }
 
-module.exports = FontScraper;
+module.exports = TypeScrape;

@@ -1,7 +1,7 @@
-# node-font-scraper
-Scrape fonts from a given URL
+# typescrape
+Scrape typefaces from a given URL.
 
-### Install globally
+### Installation
 ```bash
 npm install -g git+https://git@github.com/harmendv/node-font-scraper.git
 ```
@@ -9,10 +9,10 @@ npm install -g git+https://git@github.com/harmendv/node-font-scraper.git
 ### Usage
 #### Output results only
 ```
-scrape <url>
+typescrape <url>
 ```
 
-#### Output results and download to path
+#### Output results and download
 ```
-scrape <url> <destination>
+typescrape <url> <destination>
 ```
