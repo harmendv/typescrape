@@ -4,7 +4,7 @@
   "description": "Global NPM package that scrapes typefaces from a given URL.",
   "main": "lib/index.js",
   "scripts": {
-    "scrape": "node lib/index.js"
+    "typescrape": "node lib/index.js"
   },
   "repository": {
     "type": "git",
