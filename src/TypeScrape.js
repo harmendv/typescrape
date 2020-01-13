@@ -20,7 +20,7 @@ const FONT_FILE_EXTENSIONS = [
 ];
 
 class TypeScrape {
-  constructor(args) {
+  constructor (args) {
     this.arguments = args;
     this.url = null;
     this.base_url = null;
@@ -29,34 +29,36 @@ class TypeScrape {
     // Check if an URL is given in the second argument
     if (this.arguments[2]) {
       if (!isUrl(this.arguments[2])) {
-        throw new Error('Given argument is not of type URL.');
+        console.log(String('Error').red.inverse + ' ' + String('Given argument is not of type URL.'));
       } else {
-        this.url = new URL(this.arguments[2]);
-        // Set the base URL
-        if (this.url.toString().startsWith('http://') | this.url.toString().startsWith('https://')) {
-          this.base_url = this.url.protocol + '//' + this.url.hostname;
+        // Filter out the base URL
+        if (this.arguments[2].toString().startsWith('http://') || this.arguments[2].toString().startsWith('https://')) {
+          this.url = new URL(this.arguments[2]); // Set the URL
+          this.base_url = this.url.protocol + '//' + this.url.hostname; // Set the base URL;
         } else {
-          this.base_url = '//' + this.url.hostname;
+          this.url = new URL('http://' + this.arguments[2]); // Set the URL
+          this.base_url = 'http://' + this.url.hostname;
         }
+
         console.log('URL: ' + this.url);
         this.getFonts();
       }
     } else {
-      new Error('No URL given in first argument');
+      console.log(String('Error').red.inverse + ' ' + String('No URL given to scrape.'));
     }
 
     // Check if an output path is given
-    if(this.arguments[3]) {
+    if (this.arguments[3]) {
       if (!fs.existsSync(path.resolve(this.arguments[3]))) {
-        throw new Error('Given output path doesnt exist.');
+        console.log(String('Error').red.inverse + ' ' + String('Given output path doesnt exist.'));
       }
       this.output = path.resolve(this.arguments[3]);
-      console.log('Output: ' + this.arguments[3])
+      console.log('Output: ' + this.arguments[3]);
     }
 
   }
 
-  getContents(path) {
+  getContents (path) {
     return new Promise((resolve, reject) => {
       request({
         uri: path
@@ -65,11 +67,11 @@ class TypeScrape {
           reject(error);
         }
         resolve(response.body);
-      })
-    })
+      });
+    });
   }
 
-  getUrlsFromString(html) {
+  getUrlsFromString (html) {
     var urls = html.match(REGEX_URLS);
     var filteredUrls = [];
     if (!urls) {
@@ -80,7 +82,7 @@ class TypeScrape {
         if (url.startsWith('/') && !url.startsWith('//')) {
           filteredUrls.push(this.base_url + url);
         } else if (!url.startsWith('/') && !url.startsWith('http') && !url.startsWith('https')) {
-          filteredUrls.push(this.base_url + '/' + url)
+          filteredUrls.push(this.base_url + '/' + url);
         } else {
           filteredUrls.push(url);
         }
@@ -90,7 +92,7 @@ class TypeScrape {
     return filteredUrls;
   }
 
-  getUrlsFromCss(css) {
+  getUrlsFromCss (css) {
     var urls = css.match(REGEX_URLS);
     var filteredUrls = [];
     if (!urls) {
@@ -98,18 +100,18 @@ class TypeScrape {
     } else {
       urls.forEach(url => {
         if (url.startsWith('/') && !url.startsWith('//')) {
-          filteredUrls.push(this.base_url + url)
+          filteredUrls.push(this.base_url + url);
         } else if (!url.startsWith('/') && !url.startsWith('http') && !url.startsWith('https')) {
-          filteredUrls.push(this.base_url + '/' + url)
+          filteredUrls.push(this.base_url + '/' + url);
         } else {
-          filteredUrls.push(url)
+          filteredUrls.push(url);
         }
-      })
+      });
     }
     return filteredUrls;
   }
 
-  filterCssUrls(urls) {
+  filterCssUrls (urls) {
     let css = [];
     urls.forEach((url) => {
       if (url.includes('css')) {
@@ -120,7 +122,7 @@ class TypeScrape {
     return css;
   }
 
-  areUrlsFonts(urls) {
+  areUrlsFonts (urls) {
     return new Promise((resolve, reject) => {
       let fonts = [];
       urls.forEach((url) => {
@@ -130,10 +132,10 @@ class TypeScrape {
         }
       });
       resolve(fonts);
-    })
+    });
   }
 
-  findGoogleFontUrls(urls) {
+  findGoogleFontUrls (urls) {
     return new Promise((resolve) => {
       let googleFontUrls = [];
       urls.forEach((url) => {
@@ -142,11 +144,11 @@ class TypeScrape {
         }
       });
       resolve(googleFontUrls);
-    })
+    });
 
   }
 
-  findFontsInCssUrls(urls) {
+  findFontsInCssUrls (urls) {
     return new Promise((resolve, reject) => {
       const filePaths = this.filterCssUrls(urls);
       const fonts = [];
@@ -154,12 +156,12 @@ class TypeScrape {
       const getContentPromises = [];
 
       filePaths.forEach((file) => {
-        getContentPromises.push(this.getContents(file))
-      })
+        getContentPromises.push(this.getContents(file));
+      });
       Promise.all(getContentPromises).then(values => {
         values.forEach(value => {
           getUrlPromises.push(this.getUrlsFromCss(value));
-        })
+        });
       }).then(() => {
         Promise.all(getUrlPromises).then(values => {
           values.forEach((value) => {
@@ -172,89 +174,92 @@ class TypeScrape {
           });
         }).then(() => {
           resolve(fonts);
-        })
-      })
-    })
+        });
+      });
+    });
   }
 
-  getFonts() {
+  getFonts () {
     this.getContents(this.url).then((body) => {
       const urls = this.getUrlsFromString(body);
-      if(urls.length === 0) {
+      if (urls.length === 0) {
         return false;
       }
       Promise.all([this.areUrlsFonts(urls), this.findFontsInCssUrls(urls), this.findGoogleFontUrls(urls)]).then(results => {
         // results[0] is HTML
-        console.log('Found ' + String(results[0].length).green + ' fonts directly in the HTML.')
-        if(results[0].length > 0) {
+        console.log('Found ' + String(results[0].length).green + ' fonts directly in the HTML.');
+        if (results[0].length > 0) {
           results[0].forEach((url) => {
-            console.log(`- ${url}`)
-          })
+            console.log(`- ${url}`);
+          });
         }
         // results[1] is CSS
-        console.log('Found ' + String(results[1].length).green + ' fonts in the CSS files.')
-        if(results[1].length > 0) {
+        console.log('Found ' + String(results[1].length).green + ' fonts in the CSS files.');
+        if (results[1].length > 0) {
           results[1].forEach((url) => {
-            console.log(`- ${url}`)
-          })
+            console.log(`- ${url}`);
+          });
         }
         // results[2] is Google Font Urls
-        console.log('Found ' + String(results[2].length).green + ' Google Font URLs.')
-        if(results[2].length > 0) {
+        console.log('Found ' + String(results[2].length).green + ' Google Font URLs.');
+        if (results[2].length > 0) {
           results[2].forEach((url) => {
-            console.log(`- ${url}`)
-          })
+            console.log(`- ${url}`);
+          });
         }
 
         // Check if output is given, then download to the output!
-        if(this.output) {
+        if (this.output) {
           console.log('');
-          console.log('Downloading all fonts.');
+          console.log(`Downloading fonts to: ${this.output}`);
           results.forEach((resultArray, index) => {
-            if(index === 2) { return false; };
+            if (index === 2) {
+              return false;
+            }
+            ;
 
             resultArray.forEach((result) => {
               const filename = path.basename(result);
               const destination = path.resolve(this.output, filename);
               this.downloadFont(result, destination, (error) => {
-                if(error) {
-                  console.log('Error downloading ' + filename);
+                if (error) {
+                  console.log(String('Error').red.inverse + ' ' + String('Error downloading ' + filename));
                 } else {
-                  console.log('Downloaded to ' + destination);
+                  console.log(String('✓').green + ' ' + 'Downloaded: ' + filename);
                 }
-              })
+              });
             });
           });
         }
-      })
+      });
     }).catch((e) => {
-      throw new Error(`Something went wrong getting retrieving the URL: ${e}`);
-    })
+      console.log(String('Error').red.inverse + ' ' + String(`Something went wrong getting retrieving the URL: ${e}`));
+    });
   }
 
-  downloadFont(url, destination, callback) {
-      var file = fs.createWriteStream(destination);
-      if(new URL(url).protocol === 'https:') {
-        var request = https.get(url, function(response) {
-          response.pipe(file);
-          file.on('finish', function() {
-            file.close(callback);  // close() is async, call cb after close completes.
-          });
-        }).on('error', function(err) { // Handle errors
-          fs.unlink(destination); // Delete the file async. (But we don't check the result)
-          if (callback) callback(err.message);
+  downloadFont (url, destination, callback) {
+    var file = fs.createWriteStream(destination);
+    if (new URL(url).protocol === 'https:') {
+      var request = https.get(url, function (response) {
+        response.pipe(file);
+        file.on('finish', function () {
+          file.close(callback);  // close() is async, call cb after close completes.
         });
-      } else {
-        var request = http.get(url, function(response) {
-          response.pipe(file);
-          file.on('finish', function() {
-            file.close(callback);  // close() is async, call cb after close completes.
-          });
-        }).on('error', function(err) { // Handle errors
-          fs.unlink(destination); // Delete the file async. (But we don't check the result)
-          if (callback) callback(err.message);
+      }).on('error', function (err) { // Handle errors
+        fs.unlink(destination); // Delete the file async. (But we don't check the result)
+        if (callback) callback(err.message);
+      });
+    } else {
+      var request = http.get(url, function (response) {
+        response.pipe(file);
+        file.on('finish', function () {
+          file.close(callback);  // close() is async, call cb after close completes.
         });
-      }
+      }).on('error', function (err) { // Handle errors
+        fs.unlink(destination); // Delete the file async. (But we don't check the result)
+        if (callback) callback(err.message);
+      });
+    }
 
   }
 }
