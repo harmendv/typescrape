@@ -1,19 +1,25 @@
-# typescrape
+# 🖋️ typescrape
 Scrape typefaces from a given URL.
 
-### Installation
-#### Direct from github
+## Getting Started
+
+### Check out repository run it from there
 ```bash
-npm install -g git+https://git@github.com/harmendv/typescrape.git
+git clone https://github.com/harmendv/typescrape.git
+npm ci
+```
+### Run typescrape
+
+#### Print info only
+```bash
+npm run typescrape <url>
+```
+#### Download the fonts
+```bash
+npm run typescrape <url> <destination_path>
 ```
 
-### Usage
-#### Output results
-```
-typescrape <url>
-```
-
-#### Output results and download fonts
-```
-typescrape <url> <destination>
-```
+## Todo
+- Improve handling minified CSS
+- Add Tests
+- Add linting
