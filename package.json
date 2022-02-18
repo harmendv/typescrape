@@ -1,25 +1,25 @@
 {
   "name": "typescrape",
   "version": "0.0.1",
-  "description": "Global NPM package that scrapes typefaces from a given URL.",
+  "description": "Scrape typefaces from a given URL",
   "main": "lib/index.js",
   "scripts": {
     "typescrape": "node lib/index.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/harmendv/node-font-scraper.git"
+    "url": "git+https://github.com/harmendv/typescrape.git"
   },
   "author": "harmendv",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/harmendv/node-font-scraper/issues"
+    "url": "https://github.com/harmendv/typescrape/issues"
   },
   "bin": {
     "typescrape": "./bin/index.js"
   },
   "preferGlobal": true,
-  "homepage": "https://github.com/harmendv/node-font-scraper#readme",
+  "homepage": "https://github.com/harmendv/typescrape#readme",
   "dependencies": {
     "colors": "^1.4.0",
     "pretty-error": "^4.0.0",
