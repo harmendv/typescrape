@@ -39,8 +39,9 @@ class TypeScrape {
           this.url = new URL('http://' + this.arguments[2]); // Set the URL
           this.base_url = 'http://' + this.url.hostname;
         }
-
+        console.log('');
         console.log('URL: ' + this.url);
+        console.log('');
         this.getFonts();
       }
     } else {
@@ -88,7 +89,7 @@ class TypeScrape {
         }
       });
     }
-    console.log('Analyzed ' + String(filteredUrls.length).green + ' URLs.');
+    console.log('Analyzed ' + String(filteredUrls.length).yellow + ' URLs.');
     return filteredUrls;
   }
 
@@ -118,7 +119,7 @@ class TypeScrape {
         css.push(url);
       }
     });
-    console.log('Found ' + String(css.length).green + ' CSS files');
+    console.log('Found ' + String(css.length).yellow + ' CSS files');
     return css;
   }
 
@@ -187,25 +188,34 @@ class TypeScrape {
       }
       Promise.all([this.areUrlsFonts(urls), this.findFontsInCssUrls(urls), this.findGoogleFontUrls(urls)]).then(results => {
         // results[0] is HTML
-        console.log('Found ' + String(results[0].length).green + ' fonts directly in the HTML.');
+
         if (results[0].length > 0) {
+          console.log('Found ' + String(results[0].length).green + ' fonts directly in the HTML.');
           results[0].forEach((url) => {
             console.log(`- ${url}`);
           });
+        } else {
+          console.log('Found ' + String(results[0].length).red + ' fonts directly in the HTML.');
         }
+
         // results[1] is CSS
-        console.log('Found ' + String(results[1].length).green + ' fonts in the CSS files.');
         if (results[1].length > 0) {
+          console.log('Found ' + String(results[1].length).green + ' fonts in the CSS files.');
           results[1].forEach((url) => {
             console.log(`- ${url}`);
           });
+        } else {
+          console.log('Found ' + String(results[1].length).red + ' fonts in the CSS files.');
         }
+
         // results[2] is Google Font Urls
-        console.log('Found ' + String(results[2].length).green + ' Google Font URLs.');
         if (results[2].length > 0) {
+          console.log('Found ' + String(results[2].length).green + ' Google Font URLs.');
           results[2].forEach((url) => {
             console.log(`- ${url}`);
           });
+        } else {
+          console.log('Found ' + String(results[2].length).red + ' Google Font URLs.');
         }
 
         // Check if output is given, then download to the output!
